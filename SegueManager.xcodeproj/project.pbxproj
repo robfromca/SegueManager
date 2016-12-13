@@ -129,6 +129,7 @@
 				TargetAttributes = {
 					E24EC7E11BB1605B009AFFB3 = {
 						CreatedOnToolsVersion = 7.0;
+						LastSwiftMigration = 0810;
 					};
 				};
 			};
@@ -280,6 +281,7 @@
 				PRODUCT_NAME = SegueManager;
 				SKIP_INSTALL = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 3.0.1;
 			};
 			name = Debug;
 		};
@@ -297,6 +299,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.nonstrict.SegueManager;
 				PRODUCT_NAME = SegueManager;
 				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 3.0.1;
 			};
 			name = Release;
 		};

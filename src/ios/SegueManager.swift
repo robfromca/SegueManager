@@ -14,13 +14,13 @@ private struct SourceLocation {
   let function: String
 }
 
-public class SegueManager {
-  typealias Handler = UIStoryboardSegue -> Void
+open class SegueManager {
+  typealias Handler = (UIStoryboardSegue) -> Void
 
-  private unowned let viewController: UIViewController
-  private let sourceLocation: SourceLocation
-  private var handlers = [String: Handler]()
-  private var timers = [String: NSTimer]()
+  fileprivate unowned let viewController: UIViewController
+  fileprivate let sourceLocation: SourceLocation
+  fileprivate var handlers = [String: Handler]()
+  fileprivate var timers = [String: Timer]()
 
   public init(
     viewController: UIViewController,
@@ -33,22 +33,22 @@ public class SegueManager {
     self.sourceLocation = SourceLocation(file: file, line: line, column: column, function: function)
   }
 
-  public func performSegue(identifier: String, handler: UIStoryboardSegue -> Void) {
+  open func performSegue(_ identifier: String, handler: @escaping (UIStoryboardSegue) -> Void) {
     handlers[identifier] = handler
-    timers[identifier] = NSTimer.scheduledTimerWithTimeInterval(0.01, target: self, selector: #selector(SegueManager.timeout(_:)), userInfo: identifier, repeats: false)
+    timers[identifier] = Timer.scheduledTimer(timeInterval: 0.01, target: self, selector: #selector(SegueManager.timeout(_:)), userInfo: identifier, repeats: false)
 
-    viewController.performSegueWithIdentifier(identifier, sender: viewController)
+    viewController.performSegue(withIdentifier: identifier, sender: viewController)
   }
 
-  public func performSegue<T>(identifier: String, handler: T -> Void) {
+  open func performSegue<T>(_ identifier: String, handler: @escaping (T) -> Void) {
     performSegue(identifier) { segue in
-      if let vc: T = viewControllerOfType(segue.destinationViewController) {
+      if let vc: T = viewControllerOfType(segue.destination) {
         handler(vc)
       }
       else {
         let message = "Performing segue '\(identifier)', "
           + "however destinationViewController is of type "
-          + "'\(segue.destinationViewController.dynamicType)' "
+          + "'\(type(of: segue.destination))' "
           + "not of expected type '\(T.self)'."
 
         fatalError(message)
@@ -56,24 +56,24 @@ public class SegueManager {
     }
   }
 
-  public func performSegue(identifier: String) {
+  open func performSegue(_ identifier: String) {
     self.performSegue(identifier, handler: { _ in })
   }
 
-  public func prepareForSegue(segue: UIStoryboardSegue) {
+  open func prepareForSegue(_ segue: UIStoryboardSegue) {
     if let segueIdentifier = segue.identifier {
       timers[segueIdentifier]?.invalidate()
-      timers.removeValueForKey(segueIdentifier)
+      timers.removeValue(forKey: segueIdentifier)
 
       if let handler = handlers[segueIdentifier] {
         handler(segue)
 
-        handlers.removeValueForKey(segueIdentifier)
+        handlers.removeValue(forKey: segueIdentifier)
       }
     }
   }
 
-  @objc private func timeout(timer: NSTimer) {
+  @objc fileprivate func timeout(_ timer: Timer) {
     let segueIdentifier = timer.userInfo as? String ?? ""
     let message = "SegueManager created at \(sourceLocation.file):\(sourceLocation.line)\n"
       + "Performed segue `\(segueIdentifier)', but handler not called.\n"
@@ -86,7 +86,7 @@ public class SegueManager {
 
 // Smartly select a view controller of a specific type
 // For navigation and tabbar controllers, select the obvious view controller
-private func viewControllerOfType<T>(viewController: UIViewController?) -> T? {
+private func viewControllerOfType<T>(_ viewController: UIViewController?) -> T? {
   if let vc = viewController as? T {
     return vc
   }
